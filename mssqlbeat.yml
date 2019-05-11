@@ -4,7 +4,13 @@
 
 mssqlbeat:
   # Defines how often an event is sent to the output
-  period: 1s
+  period: 60s
+
+  # host: "localhost"
+  # port: 1433
+
+  username: "beat"
+  password: "beat"
 
 #================================ General =====================================
 

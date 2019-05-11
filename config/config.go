@@ -6,9 +6,16 @@ package config
 import "time"
 
 type Config struct {
-	Period time.Duration `config:"period"`
+	Period   time.Duration `config:"period"`
+	Username string        `config:"username"`
+	Password string        `config:"password"`
+	Host     string        `config:"host"`
+	Instance string        `config:"instance"`
+	Port     int           `config:"port"`
 }
 
 var DefaultConfig = Config{
-	Period: 1 * time.Second,
+	Period:   1 * time.Second,
+	Instance: "",
+	Port:     1433,
 }
