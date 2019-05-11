@@ -1,6 +1,13 @@
+# WARNING
+
+Project still in very early stage of development.
+Not suited for any kind of use.
+
 # Mssqlbeat
 
 Welcome to Mssqlbeat.
+
+The intention of this project is to collect performance data from Microsoft SQL Server for analysis in Elasticsearch.
 
 Ensure that this folder is at the following location:
 `${GOPATH}/src/github.com/mathenning/mssqlbeat`
