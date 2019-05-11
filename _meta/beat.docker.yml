@@ -1,0 +1,2 @@
+mssqlbeat:
+  period: 1s
