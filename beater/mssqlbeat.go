@@ -303,9 +303,16 @@ func CalculatePerfLargeRawFraction(result *DmOsPerfResult, baseResults *[]DmOsPe
 		return BeatResult{}, errors.New(fmt.Sprintf("Base Counter not found for %s: %s", result.CounterName, fmt.Sprintf("%s base", result.CounterName)))
 	}
 
+	var key string
+	if base.InstanceName != "" {
+		key = fmt.Sprintf("dm_os_performance_counters.%s.%s", result.CounterName, result.InstanceName)
+	} else {
+		key = fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName)
+	}
+
 	perfValue := float64(100.0 * result.CounterValue / base.CounterValue)
 	e := BeatResult{
-		EventKey:   fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName),
+		EventKey:   key,
 		EventValue: perfValue,
 	}
 
