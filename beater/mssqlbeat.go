@@ -289,10 +289,6 @@ func CalculatePerfAverageBulk(result *DmOsPerfResult, baseResults *[]DmOsPerfRes
 		}
 	}
 
-	if len(baseName) < 1 {
-		logp.Warn(fmt.Sprintf("No base name found for %s", result.CounterName))
-	}
-
 	if base == (DmOsPerfResult{}) {
 		logp.Warn(fmt.Sprintf("Base Counter not found for %s: %s", result.CounterName, baseName))
 		return BeatResult{}, nil
