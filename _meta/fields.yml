@@ -2,8 +2,443 @@
   title: mssqlbeat
   description:
   fields:
-    - name: counter
-      type: long
-      required: true
+  - name: active_memory_grant_amount_kb
+      type: float
+      required: false
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Active memory grant amount (KB)
+  - name: active_temp_tables
+      type: float
+      required: false
+      description: >
+        Active Temp Tables
+  - name: average_latch_wait_time_ms
+      type: float
+      required: false
+      description: >
+        Average Latch Wait Time (ms)
+  - name: average_wait_time_ms
+      type: object
+      required: false
+      description: >
+        Average Wait Time (ms)
+  - name: avg_bytes_read
+      type: object
+      required: false
+      description: >
+        Avg Bytes/Read
+  - name: avg_bytes_transfer
+      type: object
+      required: false
+      description: >
+        Avg Bytes/Transfer
+  - name: avg_bytes_write
+      type: object
+      required: false
+      description: >
+        Avg Bytes/Write
+  - name: avg_microsec_read
+      type: object
+      required: false
+      description: >
+        Avg microsec/Read
+  - name: avg_microsec_read_comp
+      type: object
+      required: false
+      description: >
+        Avg microsec/Read Comp
+  - name: avg_microsec_transfer
+      type: object
+      required: false
+      description: >
+        Avg microsec/Transfer
+  - name: avg_microsec_write
+      type: object
+      required: false
+      description: >
+        Avg microsec/Write
+  - name: avg_microsec_write_comp
+      type: float
+      required: false
+      description: >
+        Avg microsec/Write Comp
+  - name: avg_time_between_batches_ms
+      type: float
+      required: false
+      description: >
+        Avg Time Between Batches (ms)
+  - name: avg_time_to_write_batch_ms
+      type: float
+      required: false
+      description: >
+        Avg Time to Write Batch (ms)
+  - name: background_writer_pages_sec
+      type: float
+      required: false
+      description: >
+        Background writer pages/sec
+  - name: backup_restore_throughput_sec
+      type: float
+      required: false
+      description: >
+        Backup/Restore Throughput/sec
+  - name: batch_requests_sec
+      type: float
+      required: false
+      description: >
+        Batch Requests/sec
+  - name: blocked_tasks
+      type: float
+      required: false
+      description: >
+        Blocked tasks
+  - name: buffer_cache_hit_ratio
+      type: float
+      required: false
+      description: >
+        Buffer cache hit ratio
+  - name: bytes_received_from_replica_sec
+      type: float
+      required: false
+      description: >
+        Bytes Received from Replica/sec
+  - name: bytes_sent_to_replica_sec
+      type: float
+      required: false
+      description: >
+        Bytes Sent to Replica/sec
+  - name: bytes_sent_to_transport_sec
+      type: float
+      required: false
+      description: >
+        Bytes Sent to Transport/sec
+  - name: checkpoint_pages_sec
+      type: float
+      required: false
+      description: >
+        Checkpoint pages/sec
+  - name: cpu_usage_%
+      type: object
+      required: false
+      description: >
+        CPU usage %
+  - name: data_files_size_kb
+      type: float
+      required: false
+      description: >
+        Data File(s) Size (KB)
+  - name: disk_read_bytes_sec
+      type: float
+      required: false
+      description: >
+        Disk Read Bytes/sec
+  - name: disk_read_io_sec
+      type: float
+      required: false
+      description: >
+        Disk Read IO Throttled/sec
+  - name: disk_read_io_throttled_sec
+      type: float
+      required: false
+      description: >
+        Disk Read IO/sec
+  - name: disk_write_bytes_sec
+      type: float
+      required: false
+      description: >
+        Disk Write Bytes/sec
+  - name: disk_write_io_sec
+      type: float
+      required: false
+      description: >
+        Disk Write IO Throttled/sec
+  - name: disk_write_io_throttled_sec
+      type: float
+      required: false
+      description: >
+        Disk Write IO/sec
+  - name: flow_control_sec
+      type: float
+      required: false
+      description: >
+        Flow Control Time (ms/sec)
+  - name: flow_control_time_ms_sec
+      type: float
+      required: false
+      description: >
+        Flow Control/sec
+  - name: forwarded_records_sec
+      type: float
+      required: false
+      description: >
+        Forwarded Records/sec
+  - name: free_list_stalls_sec
+      type: float
+      required: false
+      description: >
+        Free list stalls/sec
+  - name: free_space_in_tempdb_kb
+      type: float
+      required: false
+      description: >
+        Free Space in tempdb (KB)
+  - name: full_scans_sec
+      type: float
+      required: false
+      description: >
+        Full Scans/sec
+  - name: index_searches_sec
+      type: float
+      required: false
+      description: >
+        Index Searches/sec
+  - name: latch_waits_sec
+      type: float
+      required: false
+      description: >
+        Latch Waits/sec
+  - name: lazy_writes_sec
+      type: float
+      required: false
+      description: >
+        Lazy writes/sec
+  - name: log_apply_pending_queue
+      type: float
+      required: false
+      description: >
+        Log Apply Pending Queue
+  - name: log_apply_ready_queue
+      type: float
+      required: false
+      description: >
+        Log Apply Ready Queue
+  - name: log_bytes_flushed_sec
+      type: float
+      required: false
+      description: >
+        Log Bytes Flushed/sec
+  - name: log_bytes_received_sec
+      type: float
+      required: false
+      description: >
+        Log Bytes Received/sec
+  - name: log_files_size_kb
+      type: float
+      required: false
+      description: >
+        Log File(s) Size (KB)
+  - name: log_files_used_size_kb
+      type: float
+      required: false
+      description: >
+        Log File(s) Used Size (KB)
+  - name: log_flush_wait_time
+      type: float
+      required: false
+      description: >
+        Log Flush Wait Time
+  - name: log_flushes_sec
+      type: float
+      required: false
+      description: >
+        Log Flushes/sec
+  - name: log_send_queue
+      type: float
+      required: false
+      description: >
+        Log Send Queue
+  - name: logins_sec
+      type: float
+      required: false
+      description: >
+        Logins/sec
+  - name: logouts_sec
+      type: float
+      required: false
+      description: >
+        Logouts/sec
+  - name: memory_broker_clerk_size
+      type: float
+      required: false
+      description: >
+        Memory broker clerk size
+  - name: memory_grants_outstanding
+      type: float
+      required: false
+      description: >
+        Memory Grants Outstanding
+  - name: memory_grants_pending
+      type: float
+      required: false
+      description: >
+        Memory Grants Pending
+  - name: msg_fragment_recv_size_avg
+      type: float
+      required: false
+      description: >
+        Msg Fragment Recv Size Avg
+  - name: msg_fragment_send_size_avg
+      type: float
+      required: false
+      description: >
+        Msg Fragment Send Size Avg
+  - name: page_life_expectancy
+      type: float
+      required: false
+      description: >
+        Page life expectancy
+  - name: page_lookups_sec
+      type: float
+      required: false
+      description: >
+        Page lookups/sec
+  - name: page_reads_sec
+      type: float
+      required: false
+      description: >
+        Page reads/sec
+  - name: page_splits_sec
+      type: float
+      required: false
+      description: >
+        Page Splits/sec
+  - name: page_writes_sec
+      type: float
+      required: false
+      description: >
+        Page writes/sec
+  - name: percent_log_used
+      type: float
+      required: false
+      description: >
+        Percent Log Used
+  - name: processes_blocked
+      type: float
+      required: false
+      description: >
+        Processes blocked
+  - name: queued_requests
+      type: float
+      required: false
+      description: >
+        Queued requests
+  - name: readahead_pages_sec
+      type: float
+      required: false
+      description: >
+        Readahead pages/sec
+  - name: receive_i_o_len_avg
+      type: float
+      required: false
+      description: >
+        Receive I/O Len Avg
+  - name: receives_from_replica_sec
+      type: float
+      required: false
+      description: >
+        Receives from Replica/sec
+  - name: recovery_queue
+      type: float
+      required: false
+      description: >
+        Recovery Queue
+  - name: redone_bytes_sec
+      type: float
+      required: false
+      description: >
+        Redone Bytes/sec
+  - name: requests_completed_sec
+      type: float
+      required: false
+      description: >
+        Requests completed/sec
+  - name: resent_messages_sec
+      type: float
+      required: false
+      description: >
+        Resent Messages/sec
+  - name: send_i_o_len_avg
+      type: float
+      required: false
+      description: >
+        Send I/O Len Avg
+  - name: sends_to_replica_sec
+      type: float
+      required: false
+      description: >
+        Sends to Replica/sec
+  - name: sends_to_transport_sec
+      type: float
+      required: false
+      description: >
+        Sends to Transport/sec
+  - name: sql_compilations_sec
+      type: float
+      required: false
+      description: >
+        SQL Compilations/sec
+  - name: sql_re-compilations_sec
+      type: float
+      required: false
+      description: >
+        SQL Re-Compilations/sec
+  - name: target_server_memory_kb
+      type: float
+      required: false
+      description: >
+        Target Server Memory (KB)
+  - name: temp_tables_creation_rate
+      type: float
+      required: false
+      description: >
+        Temp Tables Creation Rate
+  - name: temp_tables_for_destruction
+      type: float
+      required: false
+      description: >
+        Temp Tables For Destruction
+  - name: total_server_memory_kb
+      type: float
+      required: false
+      description: >
+        Total Server Memory (KB)
+  - name: transaction_delay
+      type: float
+      required: false
+      description: >
+        Transaction Delay
+  - name: transactions_sec
+      type: float
+      required: false
+      description: >
+        Transactions/sec
+  - name: update_conflict_ratio
+      type: float
+      required: false
+      description: >
+        Update conflict ratio
+  - name: used_memory_kb
+      type: float
+      required: false
+      description: >
+        Used memory (KB)
+  - name: user_connections
+      type: float
+      required: false
+      description: >
+        User Connections
+  - name: version_store_size_kb
+      type: float
+      required: false
+      description: >
+        Version Store Size (KB)
+  - name: write_transactions_sec
+      type: float
+      required: false
+      description: >
+        Write Transactions/sec
+  - name: xtp_memory_used_kb
+      type: float
+      required: false
+      description: >
+        XTP Memory Used (KB)
