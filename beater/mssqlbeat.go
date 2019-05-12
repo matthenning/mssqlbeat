@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -61,6 +62,8 @@ func (bt *Mssqlbeat) Run(b *beat.Beat) error {
 		return err
 	}
 
+	var lastCountersByType map[int][]DmOsPerfResult
+
 	ticker := time.NewTicker(bt.config.Period)
 	for {
 		select {
@@ -75,7 +78,7 @@ func (bt *Mssqlbeat) Run(b *beat.Beat) error {
 		}
 
 		var beatResults []BeatResult
-		beatResults, err = QueryDmOsPerformanceCounters(conn)
+		beatResults, lastCountersByType, err = QueryDmOsPerformanceCounters(conn, lastCountersByType)
 		if err != nil {
 			return err
 		}
@@ -128,101 +131,49 @@ func Connect(c config.Config) (*sql.DB, error) {
 	return conn, nil
 }
 
-func QueryDmOsPerformanceCounters(conn *sql.DB) ([]BeatResult, error) {
+func QueryDmOsPerformanceCounters(conn *sql.DB, lastCountersByType map[int][]DmOsPerfResult) ([]BeatResult, map[int][]DmOsPerfResult, error) {
 	query := `
 		SELECT * FROM sys.dm_os_performance_counters
 		WHERE counter_name IN (
-			'SQL Compilations/sec',
-			'SQL Re-Compilations/sec',
-			'User Connections',
-			'Batch Requests/sec',
-			'Logouts/sec',
-			'Logins/sec',
-			'Processes blocked',
-			'Latch Waits/sec',
-			'Full Scans/sec',
-			'Index Searches/sec',
-			'Page Splits/sec',
-			'Page Lookups/sec',
-			'Page Reads/sec',
-			'Page Writes/sec',
-			'Readahead Pages/sec',
-			'Lazy Writes/sec',
-			'Checkpoint Pages/sec',
-			'Page life expectancy',
-			'Log File(s) Size (KB)',
-			'Log File(s) Used Size (KB)',
-			'Data File(s) Size (KB)',
-			'Transactions/sec',
-			'Write Transactions/sec',
-			'Active Temp Tables',
-			'Temp Tables Creation Rate',
-			'Temp Tables For Destruction',
-			'Free Space in tempdb (KB)',
-			'Version Store Size (KB)',
-			'Memory Grants Pending',
-			'Memory Grants Outstanding',
-			'Free list stalls/sec',
-			'Buffer cache hit ratio',
-			'Buffer cache hit ratio base',
-			'Backup/Restore Throughput/sec',
-			'Total Server Memory (KB)',
-			'Target Server Memory (KB)',
-			'Log Flushes/sec',
-			'Log Flush Wait Time',
-			'Memory broker clerk size',
-			'Log Bytes Flushed/sec',
-			'Bytes Sent to Replica/sec',
-			'Log Send Queue',
-			'Bytes Sent to Transport/sec',
-			'Sends to Replica/sec',
-			'Bytes Sent to Transport/sec',
-			'Sends to Transport/sec',
-			'Bytes Received from Replica/sec',
-			'Receives from Replica/sec',
-			'Flow Control Time (ms/sec)',
-			'Flow Control/sec',
-			'Resent Messages/sec',
-			'Redone Bytes/sec',
-			'XTP Memory Used (KB)',
-			'Transaction Delay',
-			'Log Bytes Received/sec',
-			'Log Apply Pending Queue',
-			'Redone Bytes/sec',
-			'Recovery Queue',
-			'Log Apply Ready Queue',
-			'CPU usage %',
-			'CPU usage % base',
-			'Queued requests',
-			'Requests completed/sec',
-			'Blocked tasks',
-			'Active memory grant amount (KB)',
-			'Disk Read Bytes/sec',
-			'Disk Read IO Throttled/sec',
-			'Disk Read IO/sec',
-			'Disk Write Bytes/sec',
-			'Disk Write IO Throttled/sec',
-			'Disk Write IO/sec',
-			'Used memory (KB)',
-			'Forwarded Records/sec',
-			'Background Writer pages/sec',
-			'Percent Log Used',
-			'Log Send Queue KB',
-			'Redo Queue KB'
-		)
+			'SQL Compilations/sec', 'SQL Re-Compilations/sec', 'User Connections', 'Batch Requests/sec', 'Logouts/sec',
+			'Logins/sec', 'Processes blocked', 'Latch Waits/sec', 'Full Scans/sec', 'Index Searches/sec', 'Page Splits/sec',
+			'Page Lookups/sec', 'Page Reads/sec', 'Page Writes/sec', 'Readahead Pages/sec', 'Lazy Writes/sec', 'Checkpoint Pages/sec',
+			'Page life expectancy', 'Log File(s) Size (KB)', 'Log File(s) Used Size (KB)', 'Data File(s) Size (KB)',
+			'Transactions/sec', 'Write Transactions/sec', 'Active Temp Tables', 'Temp Tables Creation Rate', 'Temp Tables For Destruction',
+			'Free Space in tempdb (KB)', 'Version Store Size (KB)', 'Memory Grants Pending', 'Memory Grants Outstanding',
+			'Free list stalls/sec', 'Buffer cache hit ratio', 'Buffer cache hit ratio base', 'Backup/Restore Throughput/sec',
+			'Total Server Memory (KB)', 'Target Server Memory (KB)', 'Log Flushes/sec', 'Log Flush Wait Time',
+			'Memory broker clerk size', 'Log Bytes Flushed/sec', 'Bytes Sent to Replica/sec', 'Log Send Queue',
+			'Bytes Sent to Transport/sec', 'Sends to Replica/sec', 'Bytes Sent to Transport/sec', 'Sends to Transport/sec',
+			'Bytes Received from Replica/sec', 'Receives from Replica/sec', 'Flow Control Time (ms/sec)', 'Flow Control/sec',
+			'Resent Messages/sec', 'Redone Bytes/sec', 'XTP Memory Used (KB)', 'Transaction Delay', 'Log Bytes Received/sec',
+			'Log Apply Pending Queue', 'Redone Bytes/sec', 'Recovery Queue', 'Log Apply Ready Queue', 'CPU usage %',
+			'CPU usage % base', 'Queued requests', 'Requests completed/sec', 'Blocked tasks', 'Active memory grant amount (KB)',
+			'Disk Read Bytes/sec', 'Disk Read IO Throttled/sec', 'Disk Read IO/sec', 'Disk Write Bytes/sec', 'Disk Write IO Throttled/sec',
+			'Disk Write IO/sec', 'Used memory (KB)', 'Forwarded Records/sec', 'Background Writer pages/sec', 'Percent Log Used',
+			'Log Send Queue KB', 'Redo Queue KB', 'Average Latch Wait Time (ms)', 'Average Wait Time (ms)', 'Avg Disk Read IO (ms)',
+			'Avg Disk Write IO (ms)', 'Avg Dist From EOL/LP Request', 'Avg time delete FileTable item', 'Avg time FileTable enumeration',
+			'Avg time FileTable handle kill', 'Avg time move FileTable item', 'Avg time per file I/O request', 'Avg time per file I/O response',
+			'Avg time rename FileTable item', 'Avg time to get FileTable item', 'Avg time update FileTable item',
+			'Avg. Bytes/Read', 'Avg. Bytes/Transfer', 'Avg. Bytes/Write', 'Avg. Length of Batched Writes', 'Avg. microsec/Read',
+			'Avg. microsec/Read Comp', 'Avg. microsec/Transfer', 'Avg. microsec/Write', 'Avg. microsec/Write Comp',
+			'Avg. Time Between Batches (ms)', 'Avg. Time to Write Batch (ms)', 'Msg Fragment Recv Size Avg', 'Msg Fragment Send Size Avg',
+			'Receive I/O Len Avg', 'Send I/O Len Avg', 'Update conflict ratio', 'XTP Controller DLC Latency/Fetch'
+		) 
+		OR cntr_type = 1073939712
 	`
 	stmt, err := conn.Prepare(query)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.Query()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	counters_by_type := make(map[int][]DmOsPerfResult)
+	countersByType := make(map[int][]DmOsPerfResult)
 
 	for rows.Next() {
 		result := DmOsPerfResult{}
@@ -232,17 +183,17 @@ func QueryDmOsPerformanceCounters(conn *sql.DB) ([]BeatResult, error) {
 			&result.CounterValue,
 			&result.CounterType)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		result.ObjectName = strings.TrimSpace(result.ObjectName)
 		result.CounterName = strings.TrimSpace(result.CounterName)
 		result.InstanceName = strings.TrimSpace(result.InstanceName)
-		counters_by_type[result.CounterType] = append(counters_by_type[result.CounterType], result)
+		countersByType[result.CounterType] = append(countersByType[result.CounterType], result)
 	}
 
 	beatResults := make([]BeatResult, 0)
-	for ctype, results := range counters_by_type {
+	for ctype, results := range countersByType {
 		for _, result := range results {
 			var beatResult BeatResult
 			var err error
@@ -251,26 +202,30 @@ func QueryDmOsPerformanceCounters(conn *sql.DB) ([]BeatResult, error) {
 			}
 			switch ctype {
 			case 537003264:
-				baseResults := counters_by_type[1073939712]
+				baseResults := countersByType[1073939712]
 				beatResult, err = CalculatePerfLargeRawFraction(&result, &baseResults)
 			case 272696576:
 				beatResult, err = CalculatePerfCounterBulkCount(&result)
 			case 1073874176:
-				beatResult, err = CalculatePerfAverageBulk(&result, &results)
+				baseResults := countersByType[1073939712]
+				beatResult, err = CalculatePerfAverageBulk(&result, &baseResults, lastCountersByType)
 			case 65792:
 				beatResult, err = CalculatePerfCounterLargeRawcount(&result)
 			default:
-				return nil, errors.New(fmt.Sprintf("Unknown counter type: %d", ctype))
+				return nil, nil, errors.New(fmt.Sprintf("Unknown counter type: %d", ctype))
 			}
 
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			beatResults = append(beatResults, beatResult)
+
+			if beatResult != (BeatResult{}) { // Skip empty results
+				beatResults = append(beatResults, beatResult)
+			}
 		}
 	}
 
-	return beatResults, nil
+	return beatResults, countersByType, nil
 }
 
 func CalculatePerfCounterLargeRawcount(result *DmOsPerfResult) (BeatResult, error) {
@@ -319,8 +274,73 @@ func CalculatePerfLargeRawFraction(result *DmOsPerfResult, baseResults *[]DmOsPe
 	return e, nil
 }
 
-func CalculatePerfAverageBulk(result *DmOsPerfResult, results *[]DmOsPerfResult) (BeatResult, error) {
-	e := BeatResult{}
+func CalculatePerfAverageBulk(result *DmOsPerfResult, baseResults *[]DmOsPerfResult, lastCountersByType map[int][]DmOsPerfResult) (BeatResult, error) {
+	if len(lastCountersByType) < 1 {
+		return BeatResult{}, nil // Only available after the first loop, as we need reference values
+	}
+	r, _ := regexp.Compile("\\s\\((.*)\\)$") // Remove (ms) and such from end of Counter Name to find base
+	baseName := strings.ToLower(fmt.Sprintf("%s Base", r.ReplaceAllString(result.CounterName, "")))
+
+	// Find base value
+	var base DmOsPerfResult
+	for _, baseResult := range *baseResults {
+		if strings.ToLower(baseResult.CounterName) == baseName && baseResult.InstanceName == result.InstanceName {
+			base = baseResult
+		}
+	}
+
+	if len(baseName) < 1 {
+		logp.Warn(fmt.Sprintf("No base name found for %s", result.CounterName))
+	}
+
+	if base == (DmOsPerfResult{}) {
+		logp.Warn(fmt.Sprintf("Base Counter not found for %s: %s", result.CounterName, baseName))
+		return BeatResult{}, nil
+	}
+
+	// Find last value
+	var lastValue DmOsPerfResult
+	for _, valueResult := range lastCountersByType[1073874176] {
+		if valueResult.CounterName == result.CounterName && valueResult.InstanceName == result.InstanceName {
+			lastValue = valueResult
+		}
+	}
+
+	if lastValue == (DmOsPerfResult{}) {
+		logp.Warn(fmt.Sprintf("Last Counter not found for %s", result.CounterName))
+		return BeatResult{}, nil
+	}
+
+	// Find last base value
+	var lastBase DmOsPerfResult
+	for _, baseResult := range lastCountersByType[1073939712] {
+		if strings.ToLower(baseResult.CounterName) == baseName && baseResult.InstanceName == result.InstanceName {
+			lastBase = baseResult
+		}
+	}
+
+	if lastBase == (DmOsPerfResult{}) {
+		logp.Warn(fmt.Sprintf("Last Base Counter not found for %s: %s", result.CounterName, baseName))
+		return BeatResult{}, nil
+	}
+
+	var key string
+	if base.InstanceName != "" {
+		key = fmt.Sprintf("dm_os_performance_counters.%s.%s", result.CounterName, result.InstanceName)
+	} else {
+		key = fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName)
+	}
+
+	divident := result.CounterValue - lastValue.CounterValue
+	divisor := base.CounterValue - lastBase.CounterValue
+	var quotient float64 = 0
+	if divisor != 0 {
+		quotient = float64(divident / divisor)
+	}
+	e := BeatResult{
+		EventKey:   key,
+		EventValue: quotient,
+	}
 	return e, nil
 }
 
