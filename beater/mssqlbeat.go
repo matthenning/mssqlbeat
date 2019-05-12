@@ -230,7 +230,7 @@ func QueryDmOsPerformanceCounters(conn *sql.DB, lastCountersByType map[int][]DmO
 
 func CalculatePerfCounterLargeRawcount(result *DmOsPerfResult) (BeatResult, error) {
 	e := BeatResult{
-		EventKey:   fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName),
+		EventKey:   GetDmOsPerfFieldKey(nil, result),
 		EventValue: float64(result.CounterValue),
 	}
 
@@ -239,7 +239,7 @@ func CalculatePerfCounterLargeRawcount(result *DmOsPerfResult) (BeatResult, erro
 
 func CalculatePerfCounterBulkCount(result *DmOsPerfResult) (BeatResult, error) {
 	e := BeatResult{
-		EventKey:   fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName),
+		EventKey:   GetDmOsPerfFieldKey(nil, result),
 		EventValue: float64(result.CounterValue),
 	}
 
@@ -258,16 +258,9 @@ func CalculatePerfLargeRawFraction(result *DmOsPerfResult, baseResults *[]DmOsPe
 		return BeatResult{}, errors.New(fmt.Sprintf("Base Counter not found for %s: %s", result.CounterName, fmt.Sprintf("%s base", result.CounterName)))
 	}
 
-	var key string
-	if base.InstanceName != "" {
-		key = fmt.Sprintf("dm_os_performance_counters.%s.%s", result.CounterName, result.InstanceName)
-	} else {
-		key = fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName)
-	}
-
 	perfValue := float64(100.0 * result.CounterValue / base.CounterValue)
 	e := BeatResult{
-		EventKey:   key,
+		EventKey:   GetDmOsPerfFieldKey(&base, result),
 		EventValue: perfValue,
 	}
 
@@ -320,13 +313,6 @@ func CalculatePerfAverageBulk(result *DmOsPerfResult, baseResults *[]DmOsPerfRes
 		return BeatResult{}, nil
 	}
 
-	var key string
-	if base.InstanceName != "" {
-		key = fmt.Sprintf("dm_os_performance_counters.%s.%s", result.CounterName, result.InstanceName)
-	} else {
-		key = fmt.Sprintf("dm_os_performance_counters.%s", result.CounterName)
-	}
-
 	divident := result.CounterValue - lastValue.CounterValue
 	divisor := base.CounterValue - lastBase.CounterValue
 	var quotient float64 = 0
@@ -334,7 +320,7 @@ func CalculatePerfAverageBulk(result *DmOsPerfResult, baseResults *[]DmOsPerfRes
 		quotient = float64(divident / divisor)
 	}
 	e := BeatResult{
-		EventKey:   key,
+		EventKey:   GetDmOsPerfFieldKey(&base, result),
 		EventValue: quotient,
 	}
 	return e, nil
@@ -356,4 +342,31 @@ func GenerateEvent(beatResults *[]BeatResult) (beat.Event, error) {
 	}
 
 	return event, nil
+}
+
+func GetDmOsPerfFieldKey(base *DmOsPerfResult, result *DmOsPerfResult) string {
+	var key string
+	if base != nil && base.InstanceName != "" {
+		key = fmt.Sprintf(
+			"dm_os_performance_counters.%s.%s",
+			TransformFieldKey(result.CounterName),
+			TransformFieldKey(result.InstanceName),
+		)
+	} else {
+		key = fmt.Sprintf(
+			"dm_os_performance_counters.%s",
+			TransformFieldKey(result.CounterName),
+		)
+	}
+
+	return key
+}
+
+func TransformFieldKey(key string) string {
+	r, _ := regexp.Compile("[\\s/]")
+	key = r.ReplaceAllString(key, "_")
+	r, _ = regexp.Compile("[.()]")
+	key = r.ReplaceAllString(key, "")
+
+	return strings.ToLower(key)
 }
